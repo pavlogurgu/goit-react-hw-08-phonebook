@@ -1,67 +1,62 @@
-import { useState } from 'react';
-import PropTypes from 'prop-types';
-import { FormContainer, Lable, Input, Button } from './InputForm.styled';
+import { selectContacts } from "redux/selectors";
+import { useDispatch, useSelector } from "react-redux";
+import { addContact } from "redux/contactsOperations";
+import { Formik } from "formik";
+import {
+  StyledForm,
+  StyledField,
+  StyledLable,
+  StyledButton,
+} from "components/Shareble.styled";
 
-export const InputForm = ({ onSubmit }) =>{
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const data = { name, phone };
+export const InputForm = () => {
+  const contacts = useSelector(selectContacts);
+  const dispatch = useDispatch();
 
-  const onInputName = event => {
-    setName(event.target.value);
+  const checkContactAvailability = newData => {
+    return contacts.find(
+      ({ name }) => name.toLowerCase() === newData.name.toLowerCase()
+    );
   };
 
-  const onInputPhone = event => {
-    setPhone(event.target.value);
+  const submitHandle = (values, { resetForm }) => {
+    if (checkContactAvailability(values)) {
+      alert(`${values.name} is already in contacts`);
+      resetForm();
+      return;
+    }
+    dispatch(addContact(values));
+    console.log(values);
+    resetForm();
   };
 
-  const handleSubmit = event => {
-    event.preventDefault();
-    onSubmit(data);
-    formReset();
-  };
-
-  const formReset = () => {
-    setName('');
-    setPhone('');
-  };
-
-
-   
-    return (
-      <FormContainer onSubmit={handleSubmit}>
-        <Lable>
+  return (
+    <Formik initialValues={{ name: "", number: "" }} onSubmit={submitHandle}>
+      <StyledForm>
+        <StyledLable>
           Name:
-          <Input
+          <StyledField
             type="text"
             name="name"
-            value={name}
-            onChange={onInputName}
             pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
             title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
             required
           />
-        </Lable>
+        </StyledLable>
 
-        <Lable>
+        <StyledLable>
           Phone:
-          <Input
+          <StyledField
             type="tel"
             name="number"
-            value={phone}
-            onChange={onInputPhone}
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
             required
           />
-        </Lable>
+        </StyledLable>
 
-        <Button type="submit">Add contact</Button>
-      </FormContainer>
-    );
-  }
-
-
-InputForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
+        <StyledButton type="submit">Add contact</StyledButton>
+      </StyledForm>
+    </Formik>
+  );
 };
